@@ -50,7 +50,6 @@ import org.springframework.lang.Nullable;
  * @see InputStreamResource
  */
 public interface Resource extends InputStreamSource {
-
 	/**
 	 * Determine whether this resource actually exists in physical form.
 	 * <p>This method performs a definitive existence check, whereas the
@@ -165,6 +164,7 @@ public interface Resource extends InputStreamSource {
 	String getFilename();
 
 	/**
+	 * 用于在错误处理中的打印信息。
 	 * Return a description for this resource,
 	 * to be used for error output when working with the resource.
 	 * <p>Implementations are also encouraged to return this value
