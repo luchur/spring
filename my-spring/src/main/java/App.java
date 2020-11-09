@@ -11,9 +11,13 @@ public class App {
 
 	public static void main(String[] args) {
 
-		BeanFactory beanFactory = new XmlBeanFactory(new ClassPathResource("application.xml"));
+		//将配置文件封装为Resource类型
+		ClassPathResource resource = new ClassPathResource("application.xml");
+
+		BeanFactory beanFactory = new XmlBeanFactory(resource);
 
 		HelloWorld helloWorld = (HelloWorld) beanFactory.getBean("helloWorld");
+
 		System.out.println(helloWorld.getTestStr());
 
 	}

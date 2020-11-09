@@ -134,6 +134,8 @@ public class EncodedResource implements InputStreamSource {
 	 * @throws IOException if opening the Reader failed
 	 * @see #requiresReader()
 	 * @see #getInputStream()
+	 *
+	 *  构造一个有编码（encoding）的InputStreamReader
 	 */
 	public Reader getReader() throws IOException {
 		if (this.charset != null) {

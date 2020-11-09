@@ -95,6 +95,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		this.readerContext = readerContext;
 		logger.debug("Loading bean definitions");
 		Element root = doc.getDocumentElement();
+		//核心部分
 		doRegisterBeanDefinitions(root);
 	}
 
@@ -126,10 +127,13 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// the new (child) delegate with a reference to the parent for fallback purposes,
 		// then ultimately reset this.delegate back to its original (parent) reference.
 		// this behavior emulates a stack of delegates without actually necessitating one.
+
+		//专门处理解析  BeanDefinitionParserDelegate
 		BeanDefinitionParserDelegate parent = this.delegate;
 		this.delegate = createDelegate(getReaderContext(), root, parent);
 
 		if (this.delegate.isDefaultNamespace(root)) {
+			//处理profile属性
 			String profileSpec = root.getAttribute(PROFILE_ATTRIBUTE);
 			if (StringUtils.hasText(profileSpec)) {
 				String[] specifiedProfiles = StringUtils.tokenizeToStringArray(
@@ -144,8 +148,21 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 			}
 		}
 
+		/**
+		 * 通过上面的代码我们看到了处理流程，首先是对profile的处理，然后开始进行解析，
+		 * 可是当我们跟进preProcessXml(root)或者postProcessXml(root)发现代码是空的，
+		 * 既然是空的写着还有什么用呢？就像面向对象设计方法学中常说的一句话，
+		 * 一个类要么是面向继承的设计的，要么就用final修饰。
+		 * 在DefaultBeanDefinitionDocumentReader中并没有用final修饰，
+		 * 所以它是面向继承而设计的。这两个方法正是为子类而设计的，
+		 * 如果读者有了解过设计模式，可以很快速地反映出这是模版方法模式，
+		 * 如果继承自DefaultBeanDefinitionDocumentReader的子类需要在Bean解析前后做一些处理的话，那么只需要重写这两个方法就可以了
+		 */
+		//解析前处理,留给子类实现
 		preProcessXml(root);
+		//解析并注册BeanDefinition
 		parseBeanDefinitions(root, this.delegate);
+		//解析后处理,留给子类实现
 		postProcessXml(root);
 
 		this.delegate = parent;
@@ -165,16 +182,20 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * @param root the DOM root element of the document
 	 */
 	protected void parseBeanDefinitions(Element root, BeanDefinitionParserDelegate delegate) {
+		//对beans的处理
 		if (delegate.isDefaultNamespace(root)) {
 			NodeList nl = root.getChildNodes();
 			for (int i = 0; i < nl.getLength(); i++) {
 				Node node = nl.item(i);
 				if (node instanceof Element) {
 					Element ele = (Element) node;
+					//<bean id="test" class="test.TestBean"/>
 					if (delegate.isDefaultNamespace(ele)) {
+						//对beans的处理
 						parseDefaultElement(ele, delegate);
 					}
-					else {
+					else {//<tx:annotation-driven/>
+						//对beans的处理
 						delegate.parseCustomElement(ele);
 					}
 				}
