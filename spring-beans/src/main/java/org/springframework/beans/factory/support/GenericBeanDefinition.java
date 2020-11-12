@@ -35,6 +35,8 @@ import org.springframework.lang.Nullable;
  * @see #setParentName
  * @see RootBeanDefinition
  * @see ChildBeanDefinition
+ *
+ * GenericBeanDefinition只是子类实现，而大部分的通用属性都保存在了AbstractBeanDefinition中
  */
 @SuppressWarnings("serial")
 public class GenericBeanDefinition extends AbstractBeanDefinition {

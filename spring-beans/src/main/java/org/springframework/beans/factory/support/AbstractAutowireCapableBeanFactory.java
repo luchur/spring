@@ -447,6 +447,17 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		return result;
 	}
 
+	/**
+	 * 从缓存中获取单例bean的时候就提到过，Spring中的规则是在bean的初始化后尽可
+	 * 能保证将注册的后处理器的postProcessAfterInitialization方法应用到该bean中，
+	 * 因为如果返回的bean不为空，那么便不会再次经历普通bean的创建过程，
+	 * 所以只能在这里应用后处理器的postProcessAfterInitialization方法。
+	 *
+	 * @param existingBean the new bean instance
+	 * @param beanName the name of the bean
+	 * @return
+	 * @throws BeansException
+	 */
 	@Override
 	public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName)
 			throws BeansException {
@@ -473,6 +484,18 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	//---------------------------------------------------------------------
 
 	/**
+	 *
+	 * 一个真正干活的函数其实是以do开头的，比如doGetObjectFromFactoryBean；
+	 * 而给我们错觉的函数，比如getObjectFromFactoryBean，其实只是从全局角度去做些统筹的工作。
+	 * 这个规则对于createBean也不例外，那么让我们看看在createBean函数中做了哪些准备工作
+	 *
+	 * 1）根据设置的class属性或者根据className来解析Class。
+	 * 2）对override属性进行标记及验证。在Spring配置中是存在lookup-method和replace-method的，
+	 * 	  而这两个配置的加载其实就是将配置统一存放在BeanDefinition中的methodOverrides属性里，
+	 * 	  而这个函数的操作其实也就是针对于这两个配置的
+	 * 3）应用初始化前的后处理器，解析指定bean是否存在初始化前的短路操作。
+	 * 4）创建bean。
+	 *
 	 * Central method of this class: creates a bean instance,
 	 * populates the bean instance, applies post-processors, etc.
 	 * @see #doCreateBean
@@ -489,6 +512,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Make sure bean class is actually resolved at this point, and
 		// clone the bean definition in case of a dynamically resolved Class
 		// which cannot be stored in the shared merged bean definition.
+		// 锁定class,根据设置的class属性或者根据className来解析Class
 		Class<?> resolvedClass = resolveBeanClass(mbd, beanName);
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
 			mbdToUse = new RootBeanDefinition(mbd);
@@ -496,6 +520,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// Prepare method overrides.
+		// 验证及准备覆盖的方法
 		try {
 			mbdToUse.prepareMethodOverrides();
 		}
@@ -506,7 +531,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		try {
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
+			// 给BeanPostProcessors一个机会来返回代理来代替真正的实例
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
+			/**
+			 * 短路判断
+			 * 当经过前置处理后返回的结果如果不为空，那么会直接略过后续的Bean的创建而直接返回结果。
+			 * 这一特性虽然很容易被忽略，但是却起着至关重要的作用，我们熟知的AOP功能就是基于这里的判断的。
+			 */
 			if (bean != null) {
 				return bean;
 			}
@@ -1046,13 +1077,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	@Nullable
 	protected Object resolveBeforeInstantiation(String beanName, RootBeanDefinition mbd) {
 		Object bean = null;
+		// 如果尚未被解析
 		if (!Boolean.FALSE.equals(mbd.beforeInstantiationResolved)) {
 			// Make sure bean class is actually resolved at this point.
 			if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 				Class<?> targetType = determineTargetType(beanName, mbd);
 				if (targetType != null) {
+					// 实例化前的后处理器应用
 					bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);
 					if (bean != null) {
+						// 实例化后的后处理器应用
 						bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
 					}
 				}
@@ -1072,6 +1106,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param beanName the name of the bean
 	 * @return the bean object to use instead of a default instance of the target bean, or {@code null}
 	 * @see InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation
+	 *
+	 *
+	 * bean的实例化前调用，也就是将AbsractBeanDefinition转换为BeanWrapper前的处理。
+	 * 给子类一个修改BeanDefinition的机会，也就是说当程序经过这个方法后，bean可能已经不是我们认为的bean了，
+	 * 而是或许成为了一个经过处理的代理bean，可能是通过cglib生成的，也可能是通过其它技术生成的。
+	 * 在bean的实例化前会调用后处理器的方法进行处理。
 	 */
 	@Nullable
 	protected Object applyBeanPostProcessorsBeforeInstantiation(Class<?> beanClass, String beanName) {

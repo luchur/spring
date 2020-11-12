@@ -140,31 +140,57 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	@Nullable
 	private volatile Object beanClass;
 
+	//bean的作用范围,对应bean属性scope
 	@Nullable
 	private String scope = SCOPE_DEFAULT;
 
+	//是否是抽象,对应bean属性abstract
 	private boolean abstractFlag = false;
 
+	//是否延迟加载,对应bean属性lazy-init
 	private boolean lazyInit = false;
 
+	//自动注入模式,对应bean属性autowire
 	private int autowireMode = AUTOWIRE_NO;
 
+	//依赖检查,3.0后弃用
 	private int dependencyCheck = DEPENDENCY_CHECK_NONE;
 
+	//用来表示一个bean的实例化依赖另一个bean的实例化,对应bean属性depend-on
 	@Nullable
 	private String[] dependsOn;
 
+	/**
+	 * autowire属性设置为false,这样容器在查找自动装配对象时,将不考虑该bean
+	 * 即它不会被考虑作为其它bean自动装配的候选者,但是该bean本身还是可以使用自动装配来注入其它的bean
+	 */
 	private boolean autowireCandidate = true;
 
+	//自动装配时出现多个bean的候选者时,将作为首选者
 	private boolean primary = false;
 
+	//用于记录qualifier
 	private final Map<String, AutowireCandidateQualifier> qualifiers = new LinkedHashMap<>(0);
 
 	@Nullable
 	private Supplier<?> instanceSupplier;
 
+	//允许访问非公开构造器和方法,程序设置
 	private boolean nonPublicAccessAllowed = true;
 
+	/**
+	 * 是否以一种宽松方式解析构造函数 默认为true
+	 *
+	 * 如果为false,则如下
+	 * interface ITest{};
+	 * class ITestImpl implements ITest{};
+	 * class Main(){
+	 *   Main(ITest i){}
+	 *   Main(ITestImpl i){}
+	 * }
+	 * 抛出异常,因为spring无法准确定位哪个构造函数
+	 * 程序设置
+	 */
 	private boolean lenientConstructorResolution = true;
 
 	@Nullable
@@ -173,32 +199,43 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	@Nullable
 	private String factoryMethodName;
 
+	//记录构造函数属性
 	@Nullable
 	private ConstructorArgumentValues constructorArgumentValues;
 
+	//普通属性集合
 	@Nullable
 	private MutablePropertyValues propertyValues;
 
+	//方法重写的持有者,记录lookup-method,replaced-method元素
 	@Nullable
 	private MethodOverrides methodOverrides;
 
+	//初始化方法
 	@Nullable
 	private String initMethodName;
 
+	//销毁方法
 	@Nullable
 	private String destroyMethodName;
 
+	//是否执行init-method 程序设置
 	private boolean enforceInitMethod = true;
 
+	//是否执行init-destroy 程序设置
 	private boolean enforceDestroyMethod = true;
 
+	//是否是用户定义的而不是应用程序本身定义的,创建AOP时候为true,程序设置
 	private boolean synthetic = false;
 
+	//定义这个bean的应用 程序设置
 	private int role = BeanDefinition.ROLE_APPLICATION;
 
+	//bean的描述信息
 	@Nullable
 	private String description;
 
+	//bean的资源
 	@Nullable
 	private Resource resource;
 
@@ -1083,6 +1120,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * @throws BeanDefinitionValidationException in case of validation failure
 	 */
 	protected void prepareMethodOverride(MethodOverride mo) throws BeanDefinitionValidationException {
+		// 获取对应类中对应方法名的个数
 		int count = ClassUtils.getMethodCountForName(getBeanClass(), mo.getMethodName());
 		if (count == 0) {
 			throw new BeanDefinitionValidationException(
@@ -1091,6 +1129,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 		}
 		else if (count == 1) {
 			// Mark override as not overloaded, to avoid the overhead of arg type checking.
+			// 标记MethodOverride暂未被覆盖,避免参数类型检查的开销
 			mo.setOverloaded(false);
 		}
 	}
