@@ -1,3 +1,5 @@
+package cyclic;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -31,7 +33,7 @@ public class CyclicByConstructorTest {
 			new ClassPathXmlApplicationContext("application-constructor.xml");
 		}catch (Exception e){
 			Throwable e1 = e.getCause().getCause().getCause();
-
+			System.out.println(e1);
 		}
 
 	}

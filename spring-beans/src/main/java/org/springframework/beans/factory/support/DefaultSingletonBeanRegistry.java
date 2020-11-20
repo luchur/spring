@@ -361,6 +361,14 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * Return whether the specified singleton bean is currently in creation
 	 * (within the entire factory).
 	 * @param beanName the name of the bean
+	 *
+	 * 该bean是否在创建中。在Spring中，会有个专门的属性默认为DefaultSingletonBeanRegistry的singletonsCurrentlyInCreation
+	 * 来记录bean的加载状态，在bean开始创建前会将beanName记录在属性中，在bean创建结束后会将beanName从属性中移除。
+	 * 那么我们跟随代码一路走来可是对这个属性的记录并没有多少印象，这个状态是在哪里记录的呢？不同scope的记录位置并不一样，
+	 * 我们以singleton为例，在singleton下记录属性的函数是在DefaultSingletonBeanRegistry类的
+	 * public Object getSingleton(String beanName, ObjectFactorysingletonFactory)函数的beforeSingletonCreation(beanName)和
+	 * afterSingletonCreation(beanName)中，在这两段函数中分别this.singletonsCurrentlyInCreation.add(beanName)与
+	 * this.singletonsCurrentlyIn Creation.remove(beanName)来进行状态的记录与移除。
 	 */
 	public boolean isSingletonCurrentlyInCreation(String beanName) {
 		return this.singletonsCurrentlyInCreation.contains(beanName);

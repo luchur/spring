@@ -1,9 +1,16 @@
+package cyclic;
+
 /**
  * @author luchuang
  * @date 2020-11-12
  */
 public class TestC {
 	private TestA testA;
+
+	public TestC() {
+
+	}
+
 	public void c(){
 		testA.a();
 	}

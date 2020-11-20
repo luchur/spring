@@ -2,13 +2,8 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-	<bean id="testA" class="cyclic.TestA">
-		<constructor-arg index="0" ref="testB"/>
-	</bean>
-	<bean id="testB" class="cyclic.TestB">
-		<constructor-arg index="0" ref="testC"/>
-	</bean>
-	<bean id="testC" class="cyclic.TestC">
-		<constructor-arg index="0" ref="testA"/>
-	</bean>
+
+	<bean name="test" class="aware.Test"/>
+	<bean name="hello" class="aware.Hello"/>
+
 </beans>

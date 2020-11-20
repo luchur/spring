@@ -39,6 +39,10 @@ import org.springframework.lang.Nullable;
  * @see DestructionAwareBeanPostProcessor
  * @see ConfigurableBeanFactory#addBeanPostProcessor
  * @see BeanFactoryPostProcessor
+ *
+ *
+ * 这是Spring中开放式架构中一个必不可少的亮点，给用户充足的权限去更改或者扩展Spring，而除了BeanPostProcessor外
+ * 还有很多其他的PostProcessor，当然大部分都是以此为基础，继承自BeanPostProcessor。
  */
 public interface BeanPostProcessor {
 
