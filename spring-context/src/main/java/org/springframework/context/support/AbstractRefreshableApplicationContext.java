@@ -119,6 +119,17 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * This implementation performs an actual refresh of this context's underlying
 	 * bean factory, shutting down the previous bean factory (if any) and
 	 * initializing a fresh bean factory for the next phase of the context's lifecycle.
+	 *
+	 * 1)创建DefaultListableBeanFactory
+	 *   BeanFactory的声明方式为:BeanFactory bf = new XmlBeanFactory("beanFactoryTest.xml"),其中XmlBeanFactory继承自
+	 *   DefaultListableBeanFactory,并提供了XmlBeanDefinitionReader类型的reader属性,也就是说DefaultListableBeanFactory
+	 *   是容器的基础.必须首先要实例化,那么在这里就是实例化DefaultListableBeanFactory的步骤
+	 * 2)指定序列化ID
+	 * 3)定制BeanFactory
+	 * 4)加载BeanDefinition
+	 * 5)使用全局变量记录BeanFactory类实例
+	 *   因为DefaultListableBeanFactory类型的变量beanFactory是函数内的局部变量,所以要使用全局变量记录解析结果.
+	 *
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
@@ -127,9 +138,14 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 			closeBeanFactory();
 		}
 		try {
+			//1)创建DefaultListableBeanFactory
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
+			//2)为了序列化 指定id,如果需要的话,让这个BeanFactory从id反序列化到BeanFactory对象
 			beanFactory.setSerializationId(getId());
+			//3)定制BeanFactory,设置相关属性,包括是否允许覆盖同名称的不同定义的对象以及循环依赖以及设置@Autowired和@Qualifier
+			// 注解解析器QualifierAnnotationAutowireCandidateResolver
 			customizeBeanFactory(beanFactory);
+			// 初始化DodumentReader,并进行XML文件读取及解析
 			loadBeanDefinitions(beanFactory);
 			synchronized (this.beanFactoryMonitor) {
 				this.beanFactory = beanFactory;
@@ -219,15 +235,34 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * @see DefaultListableBeanFactory#setAllowCircularReferences
 	 * @see DefaultListableBeanFactory#setAllowRawInjectionDespiteWrapping
 	 * @see DefaultListableBeanFactory#setAllowEagerClassLoading
+	 *
+	 * 这里已经开始了对BeanFactory的扩展,在基本容器的基础上,增加了是否允许覆盖是否允许扩展的设置,并提供了注解@Autowired和@Qualifier的支持
 	 */
 	protected void customizeBeanFactory(DefaultListableBeanFactory beanFactory) {
+		// 如果allowBeanDefinitionOverriding不为空,设置给beanFactory对象相应属性
+		// 此属性的含义:是否允许覆盖同名称的不同定义的对象
 		if (this.allowBeanDefinitionOverriding != null) {
 			beanFactory.setAllowBeanDefinitionOverriding(this.allowBeanDefinitionOverriding);
 		}
+		// 如果allowCircularReferences不为空,设置给beanFactory
+		// 此属性的含义:是否允许bean之间存在循环依赖
 		if (this.allowCircularReferences != null) {
 			beanFactory.setAllowCircularReferences(this.allowCircularReferences);
 		}
 	}
+
+//	/**
+//	 * 究竟在哪里设置吧,还是那句话使用子类覆盖方法,例如
+//	 *
+//	 */
+//	public class MyClassPathXmlApplicationContext extends ClassPathXmlApplicationContext{
+//		@Override
+//		protected void customizeBeanFactory(DefaultListableBeanFactory beanFactory){
+//			super.setAllowBeanDefinitionOverriding(false);
+//			super.setAllowCircularReferences(false);
+//		}
+//	}
+
 
 	/**
 	 * Load bean definitions into the given bean factory, typically through
