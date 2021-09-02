@@ -252,7 +252,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	}
 
 //	/**
-//	 * 究竟在哪里设置吧,还是那句话使用子类覆盖方法,例如
+//	 * 究竟在哪里设置呢,还是那句话使用子类覆盖方法,例如
 //	 *
 //	 */
 //	public class MyClassPathXmlApplicationContext extends ClassPathXmlApplicationContext{

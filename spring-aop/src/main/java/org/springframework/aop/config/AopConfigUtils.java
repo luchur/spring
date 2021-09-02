@@ -96,6 +96,12 @@ public abstract class AopConfigUtils {
 		return registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry, null);
 	}
 
+	/**
+	 * 注册或升级AnnotationAwareAspectJAutoProxyCreator
+	 *
+	 * 对于AOP的实现,基本上都是靠AnnotationAwareAspectJAutoProxyCreator去完成,它可以根据@Point注解定义的切点自动代理相匹配的bean,
+	 * 但是为了配置简单,Spring使用了自定义配置来帮助我们自动注册AnnotationAwareAspectJAutoProxyCreator,其注册过程就是在这里实现
+	 */
 	@Nullable
 	public static BeanDefinition registerAspectJAnnotationAutoProxyCreatorIfNecessary(BeanDefinitionRegistry registry,
 			@Nullable Object source) {
@@ -103,13 +109,14 @@ public abstract class AopConfigUtils {
 		return registerOrEscalateApcAsRequired(AnnotationAwareAspectJAutoProxyCreator.class, registry, source);
 	}
 
+	//强制使用的过程其实也是一个属性设置的过程
 	public static void forceAutoProxyCreatorToUseClassProxying(BeanDefinitionRegistry registry) {
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition definition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
 			definition.getPropertyValues().add("proxyTargetClass", Boolean.TRUE);
 		}
 	}
-
+	//强制使用的过程其实也是一个属性设置的过程
 	public static void forceAutoProxyCreatorToExposeProxy(BeanDefinitionRegistry registry) {
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition definition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
@@ -122,16 +129,20 @@ public abstract class AopConfigUtils {
 			@Nullable Object source) {
 
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
-
+		//如果已经存在了自动代理创建器,
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
+			//且存在的自动代理创建器与现在的不一致,
 			if (!cls.getName().equals(apcDefinition.getBeanClassName())) {
+				//那么需要根据优先级来判断到底需要使用哪
 				int currentPriority = findPriorityForClass(apcDefinition.getBeanClassName());
 				int requiredPriority = findPriorityForClass(cls);
 				if (currentPriority < requiredPriority) {
+					//改变bean最重要的就是改变bean所对应的className属性
 					apcDefinition.setBeanClassName(cls.getName());
 				}
 			}
+			//如果已经存在了自动代理创建器,且存在的自动代理创建器与现在的一致,则无需再此创建
 			return null;
 		}
 
