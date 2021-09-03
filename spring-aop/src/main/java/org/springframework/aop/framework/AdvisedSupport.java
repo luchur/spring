@@ -338,6 +338,7 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 					validateIntroductionAdvisor((IntroductionAdvisor) advisor);
 				}
 				Assert.notNull(advisor, "Advisor must not be null");
+				//加入增强器
 				this.advisors.add(advisor);
 			}
 			updateAdvisorArray();
