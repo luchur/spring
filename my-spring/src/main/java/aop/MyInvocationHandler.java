@@ -8,6 +8,10 @@ import java.lang.reflect.Proxy;
  * 创建自定义的InvocationHandler,用于对接口提供的方法时行增强
  * @author luchuang
  * @date 2021-09-03 17:59:49
+ *
+ * 1)构造函数,将代理的对象传入
+ * 2)invoke方法,此方法实现了AOP增强的所有逻辑
+ * 3)getProxy方法,此方法千篇一律,但必不可少
  */
 public class MyInvocationHandler implements InvocationHandler {
 

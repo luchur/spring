@@ -1,6 +1,8 @@
 package aop;
 
 /**
+ * AOP的简单实现,在目标对象的方法执行之前和之后时行了增强,Spring的AOP实现其实也是用了Proxy和InvocationHandler这两个东西
+ *
  * @author luchuang
  * @date 2021-09-03 18:09:33
  */
